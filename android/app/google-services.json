@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "371981050559",
+    "project_id": "metrox-fbf97",
+    "storage_bucket": "metrox-fbf97.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:371981050559:android:afefb5c3e254b9fdc05c0a",
+        "android_client_info": {
+          "package_name": "com.example.metrox"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUxFicHPqybKY_1m6A8tRMCuCwNTXTlxM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
