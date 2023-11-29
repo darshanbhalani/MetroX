@@ -1,3 +1,4 @@
+import 'package:MetroX/App/const/classes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -37,6 +38,8 @@ class _WalletPageState extends State<WalletPage> {
   }
 
   Future<void> _handlePaymentSuccess(PaymentSuccessResponse response) async {
+    String tempTime=time();
+    String tempDate=date();
     if (balance == null) {
       balance = double.parse(tempController);
     } else {
@@ -49,21 +52,17 @@ class _WalletPageState extends State<WalletPage> {
       'Balance': (cureentBalance! + double.parse(tempController)).toString(),
       "Transaction": FieldValue.arrayUnion([response.paymentId.toString()])
     });
-    await fire
-        .collection("transactions")
-        .doc(response.paymentId.toString())
-        .set({
-      "Id": response.paymentId.toString(),
-      "Time": "${DateTime.now().hour}:${DateTime.now().minute}:${DateTime.now().second}",
-      "Date": "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}",
-      "Method": "Razorpay",
-      "Mode": "Wallet-Payment",
-      "Amount": tempController.toString(),
-      "Phone No":auth.currentUser!.phoneNumber,
-      "Status":"Credited",
-      "TimeStamp":Timestamp.now()
-    });
+    TransactionService.add(
+      id: response.paymentId.toString(),
+      method: paymentMethod.Razorpay,
+      mode: paymentMode.Wallet_Recharge,
+      amount: double.parse(tempController.toString()).toString(),
+      status: paymentStatus.Credited,
+      time: tempTime,
+      date: tempDate,
+    );
     fatchCurrntBalance();
+    pop(context);
     snackBar(
         context, Colors.green, "Amount Successfully added into your wallet");
     tempController = "0.0";
@@ -115,7 +114,6 @@ class _WalletPageState extends State<WalletPage> {
                   GestureDetector(
                     onTap: () async {
                       addCash();
-                      // temp();
                     },
                     child: Container(
                       decoration: BoxDecoration(
@@ -147,11 +145,7 @@ class _WalletPageState extends State<WalletPage> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const ShowAllTransactionHistory(),
-                          ));
+                      push(context, ShowAllTransactionHistory());
                     },
                     child: ListTile(
                       tileColor: c2,
@@ -164,11 +158,7 @@ class _WalletPageState extends State<WalletPage> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const ShowWalletTransactionHistory(),
-                          ));
+                      push(context, ShowWalletTransactionHistory());
                     },
                     child: ListTile(
                       tileColor: c2,
@@ -246,7 +236,8 @@ class _WalletPageState extends State<WalletPage> {
                       child: GestureDetector(
                         onTap: () async {
                           if (formkey.currentState!.validate()) {
-                            Navigator.pop(context);
+                            pop(context);
+                            loading(context);
                             setState(() {});
                             fatchCurrntBalance();
                             await razorpayMethod(controller);
@@ -305,7 +296,7 @@ class _WalletPageState extends State<WalletPage> {
       'key': 'rzp_test_864jf5OoKDSQuT',
       'amount': (double.parse(controller.text) * 100)
           .toString(), //in the smallest currency sub-unit.
-      'name': 'Metro Mate.',
+      'name': 'MetroX.',
       'currency': 'INR',
       'description': 'Add Money in Wallet',
       'timeout': 120, // in seconds

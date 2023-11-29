@@ -18,7 +18,7 @@ class _ShowWalletTransactionHistoryState extends State<ShowWalletTransactionHist
         title: const Text("Show Wallet Payments History"),
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10.0),
+        padding: const EdgeInsets.symmetric(vertical: 10.0,horizontal: 8),
         child: StreamBuilder(
           stream: FirebaseFirestore.instance
               .collection("transactions").where("Method", isEqualTo: "Wallet").orderBy("TimeStamp",descending: true)

@@ -18,6 +18,13 @@ class _SignupPageState extends State<SignupPage> {
   bool flag = false;
 
   @override
+  void dispose() {
+    controller1.dispose();
+    controller2.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
@@ -144,7 +151,7 @@ class _SignupPageState extends State<SignupPage> {
                   "Balance": "0.0",
                   "Transaction":[]
                 }).whenComplete(() {
-                  Navigator.pop(context);
+                  pop(context);
                   Navigator.push(
                       context,
                       MaterialPageRoute(

@@ -11,6 +11,7 @@ import 'package:MetroX/App/const/data.dart';
 import 'package:dropdown_textfield/dropdown_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:random_password_generator/random_password_generator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -439,7 +440,7 @@ logOut(context) {
     actions: [
       TextButton(
           onPressed: (){
-            Navigator.pop(context);
+            pop(context);
           },
           child:Text("No",style:TextStyle(color: c1),)),
       TextButton(
@@ -465,4 +466,36 @@ openGoogleMap(context,String destination) async {
   if (!await launchUrl(url)) {
         throw Exception('Could not launch $url');
    }
+}
+
+push(context,Widget function){
+  Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => function,
+      ));
+}
+
+pop(context){
+  Navigator.of(context).pop();
+}
+
+String bookingIdGenerator(){
+  final RandomPasswordGenerator random = RandomPasswordGenerator();
+  String randomString = random.randomPassword(
+    passwordLength: 20,
+    specialChar: false,
+    letters: true,
+    numbers: true,
+    uppercase: true,
+  );
+  return randomString;
+}
+
+String time(){
+  return "${DateTime.now().hour}:${DateTime.now().minute}:${DateTime.now().second}";
+}
+
+String date(){
+  return "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}";
 }

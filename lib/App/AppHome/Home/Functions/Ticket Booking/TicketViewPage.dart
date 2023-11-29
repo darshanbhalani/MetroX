@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:MetroX/App/const/classes.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -48,12 +48,16 @@ class TicketViewPage extends StatefulWidget {
 }
 
 class _TicketViewPageState extends State<TicketViewPage> {
+  late TransactionService transactionService;
   final ScreenshotController screenshotController = ScreenshotController();
   final _imgkey = GlobalKey<FormState>();
   Uint8List? screenshotImageBytes;
 
   @override
   void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      loading(context);
+    });
     Timer(const Duration(seconds: 1), () {
       storeTicket();
     });
@@ -183,7 +187,6 @@ class _TicketViewPageState extends State<TicketViewPage> {
   }
 
   Future storeTicket() async {
-    loading(context);
     RenderRepaintBoundary? boundary =
         _imgkey.currentContext!.findRenderObject() as RenderRepaintBoundary?;
     ui.Image image = await boundary!.toImage();
@@ -222,69 +225,9 @@ class _TicketViewPageState extends State<TicketViewPage> {
             "Amount": widget.paymentId[3].toString()
           }
         }
-      }).whenComplete(() async {
-        await fire
-            .collection("users")
-            .doc(auth.currentUser?.phoneNumber.toString())
-            .update({
-          "Transaction": FieldValue.arrayUnion(widget.paymentMode == "Dual"
-              ? [widget.paymentId[0].toString(), widget.paymentId[2].toString()]
-              : widget.paymentMode == "Wallet"
-                  ? [widget.paymentId[0].toString()]
-                  : [widget.paymentId[2].toString()])
-        });
-        if (widget.paymentMode == "Dual") {
-          await fire
-              .collection("transactions")
-              .doc(widget.paymentId[0].toString())
-              .set({
-            "Id": widget.paymentId[0].toString(),
-            "Time": widget.bookingTime,
-            "Date": widget.bookingDate,
-            "Method": "Wallet",
-            "Mode": "Ticket-Payment",
-            "Amount": widget.paymentId[1].toString(),
-            "Phone No":auth.currentUser!.phoneNumber,
-            "Status":"Debited",
-            "TimeStamp":Timestamp.now()
-          });
-          await fire
-              .collection("transactions")
-              .doc(widget.paymentId[2].toString())
-              .set({
-            "Id": widget.paymentId[2].toString(),
-            "Time": widget.bookingTime,
-            "Date": widget.bookingDate,
-            "Method": "Razorpay",
-            "Mode": "Ticket-Payment",
-            "Amount": widget.paymentId[3].toString(),
-            "Phone No":auth.currentUser!.phoneNumber,
-            "Status":"Debited",
-            "TimeStamp":Timestamp.now()
-          });
-        } else {
-          await fire
-              .collection("transactions")
-              .doc(widget.paymentMode == "Wallet"
-                  ? widget.paymentId[0].toString()
-                  : widget.paymentId[2].toString())
-              .set({
-            "Id": widget.paymentMode == "Wallet"
-                ? widget.paymentId[0].toString()
-                : widget.paymentId[2].toString(),
-            "Time": widget.bookingTime,
-            "Date": widget.bookingDate,
-            "Method": widget.paymentMode,
-            "Mode": "Ticket-Payment",
-            "Amount": widget.totalFare,
-            "Phone No":auth.currentUser!.phoneNumber,
-            "Status":"Debited",
-            "TimeStamp":Timestamp.now()
-          });
-        }
       });
     });
-    Navigator.pop(context);
+    pop(context);
   }
 
   Future downloadTicket() async {
@@ -297,7 +240,7 @@ class _TicketViewPageState extends State<TicketViewPage> {
     }
     setState(() {});
     await ImageGallerySaver.saveImage(screenshotImageBytes!);
-    Navigator.pop(context);
+    pop(context);
     snackBar(context, Colors.green, "Ticket Saved Succesfully");
   }
 
@@ -314,6 +257,6 @@ class _TicketViewPageState extends State<TicketViewPage> {
     final file = File('${tempDir.path}/$selectedCity Metro Ticket.png');
     file.writeAsBytesSync(screenshotImageBytes!);
     Share.shareFiles([file.path], text: "$selectedCity Metro Ticket");
-    Navigator.pop(context);
+    pop(context);
   }
 }

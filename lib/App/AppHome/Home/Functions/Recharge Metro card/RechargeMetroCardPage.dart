@@ -1,10 +1,10 @@
+import 'package:MetroX/App/const/classes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:MetroX/App/const/color.dart';
 import 'package:MetroX/App/const/data.dart';
 import 'package:MetroX/App/const/wigets.dart';
-import 'package:random_password_generator/random_password_generator.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:u_credit_card/u_credit_card.dart';
 
@@ -44,6 +44,11 @@ class _RechargeMetroCardPageState extends State<RechargeMetroCardPage> {
   }
 
   Future<void> _handlePaymentSuccess(PaymentSuccessResponse response) async {
+    String randomId = await bookingIdGenerator();
+    String bookingId =
+        "$randomId${auth.currentUser!.phoneNumber!.substring(3,7)}${DateTime.now().year}${DateTime.now().month}${DateTime.now().day}${auth.currentUser!.phoneNumber!.substring(8,12)}${DateTime.now().hour}${DateTime.now().minute}${DateTime.now().second}";
+    String tempTime=time();
+    String tempDate=date();
     if(tempPaymentMode=="Dual"){
       await fire
           .collection('users')
@@ -51,6 +56,60 @@ class _RechargeMetroCardPageState extends State<RechargeMetroCardPage> {
           .update(
           {'Balance': "0.0"});
     }
+
+    if(tempPaymentMode.toString()=="Dual"){
+      TransactionService.add(
+        id: "WP$bookingId",
+        method: paymentMethod.Wallet,
+        mode: paymentMode.Card_Recharge,
+        amount: double.parse(tempWallet.toString()).toString(),
+        status: paymentStatus.Debited,
+        time: tempTime,
+        date: tempDate,
+      );
+      TransactionService.add(
+        id: response.paymentId.toString(),
+        method: paymentMethod.Razorpay,
+        mode: paymentMode.Card_Recharge,
+        amount: double.parse(tempRazorpay.toString()).toString(),
+        status: paymentStatus.Debited,
+        time: tempTime,
+        date: tempDate,
+      );
+    }else{
+      TransactionService.add(
+        id: response.paymentId.toString(),
+        method:paymentMethod.Razorpay,
+        mode: paymentMode.Card_Recharge,
+        amount: double.parse(tempController.toString()).toString(),
+        status: paymentStatus.Debited,
+        time: tempTime,
+        date: tempDate,
+      );
+    }
+    TransactionService.add(
+      id: "WCP$bookingId",
+      method: paymentMethod.Dual,
+      mode: paymentMode.Card_Recharge,
+      amount: double.parse(tempController.toString()).toString(),
+      status: paymentStatus.Credited,
+      time: tempTime,
+      date: tempDate,
+    );
+    // await fire
+    //     .collection("transactions")
+    //     .doc(response.paymentId.toString())
+    //     .set({
+    //   "Id": response.paymentId.toString(),
+    //   "Time": "${DateTime.now().hour}:${DateTime.now().minute}:${DateTime.now().second}",
+    //   "Date": "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}",
+    //   "Method": "Razorpay",
+    //   "Mode": "Metro-Card-Recharge",
+    //   "Amount": tempRazorpay.toString(),
+    //   "Phone No":auth.currentUser!.phoneNumber,
+    //   "Status":"Credited",
+    //   "TimeStamp":Timestamp.now()
+    // });
     await fire.collection("cards").doc(tempCardNo.toString()).get().then((value) => currentBalance=double.parse(value["Balance"]));
     await fire
         .collection('cards')
@@ -58,74 +117,15 @@ class _RechargeMetroCardPageState extends State<RechargeMetroCardPage> {
         .update({
       'Balance': (currentBalance! + double.parse(tempController)).toString(),
     });
-    await fire
-        .collection("transactions")
-        .doc(response.paymentId.toString())
-        .set({
-      "Id": response.paymentId.toString(),
-      "Time": "${DateTime.now().hour}:${DateTime.now().minute}:${DateTime.now().second}",
-      "Date": "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}",
-      "Method": "Razorpay",
-      "Mode": "Metro-Card-Recharge",
-      "Amount": tempRazorpay.toString(),
-      "Phone No":auth.currentUser!.phoneNumber,
-      "Status":"Credited",
-      "TimeStamp":Timestamp.now()
-    });
-    if(tempPaymentMode=="Dual"){
-      final RandomPasswordGenerator random = RandomPasswordGenerator();
-      String randomId = random.randomPassword(
-        passwordLength: 20,
-        specialChar: false,
-        letters: true,
-        numbers: true,
-        uppercase: true,
-      );
-      String bookingTime =
-          "${DateTime.now().hour}:${DateTime.now().minute}:${DateTime.now().second}";
-      String bookingDate =
-          "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}";
-      String bookingId =
-          "$randomId${auth.currentUser!.phoneNumber!.substring(3,7)}${DateTime.now().year}${DateTime.now().month}${DateTime.now().day}${auth.currentUser!.phoneNumber!.substring(8,12)}${DateTime.now().hour}${DateTime.now().minute}${DateTime.now().second}";
-      await fire
-          .collection("transactions")
-          .doc("WP$bookingId")
-          .set({
-        "Id": "WP$bookingId",
-        "Time": bookingTime,
-        "Date": bookingDate,
-        "Method": "Wallet",
-        "Mode": "Metro-Card-Recharge",
-        "Amount": tempWallet.toString(),
-        "Phone No":auth.currentUser!.phoneNumber,
-        "Status":"Debited",
-        "TimeStamp":Timestamp.now()
-      });
-      await fire
-          .collection("transactions")
-          .doc("WCP$bookingId")
-          .set({
-        "Id": "WCP$bookingId",
-        "Time": bookingTime,
-        "Date": bookingDate,
-        "Method": "Wallet",
-        "Mode": "Metro-Card-Recharge",
-        "Amount": tempWallet.toString(),
-        "Phone No":auth.currentUser!.phoneNumber,
-        "Status":"Credited",
-        "TimeStamp":Timestamp.now()
-      });
-    }
     tempController = "0.0";
     tempCardNo=null;
     tempPaymentMode=null;
     tempRazorpay=null;
     tempWallet=null;
     currentBalance=null;
-    Navigator.pop(context);
-    snackBar(
-        context, Colors.green, "Amount Successfully added into your Metro Card");
+    pop(context);
     setState(() {});
+    snackBar(context, Colors.green, "Amount Successfully added into your Metro Card");
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {}
@@ -176,7 +176,7 @@ class _RechargeMetroCardPageState extends State<RechargeMetroCardPage> {
                   onTap: () async {
                     loading(context);
                     await fatchCurrntBalance();
-                    Navigator.pop(context);
+                    pop(context);
                     addCash(context,snap["Card No"],snap["Holder Name"]);
                   },
                   child: Center(
@@ -334,59 +334,38 @@ class _RechargeMetroCardPageState extends State<RechargeMetroCardPage> {
                             child: GestureDetector(
                               onTap: () async {
                                 if (formkey.currentState!.validate()) {
-                                  // Navigator.pop(context);
-                                  // setState(() {});
-                                  // await razorpayMethod(controller);
                                   loading(context);
+                                  String randomId = await bookingIdGenerator();
+                                  String bookingId =
+                                      "$randomId${auth.currentUser!.phoneNumber!.substring(3,7)}${DateTime.now().year}${DateTime.now().month}${DateTime.now().day}${auth.currentUser!.phoneNumber!.substring(8,12)}${DateTime.now().hour}${DateTime.now().minute}${DateTime.now().second}";
                                   tempCardNo=cardNo;
+                                  fatchCurrntBalance();
                                   if(wallet && (currentWalletBalance!) >= double.parse(controller.text)) {
+                                    String tempTime=time();
+                                    String tempDate=date();
                                     await fire
                                         .collection('users')
                                         .doc(auth.currentUser!.phoneNumber)
                                         .update(
                                         {'Balance': (currentWalletBalance! - double.parse(controller.text)).toString()});
-                                    final RandomPasswordGenerator random = RandomPasswordGenerator();
-                                    String randomId = random.randomPassword(
-                                      passwordLength: 20,
-                                      specialChar: false,
-                                      letters: true,
-                                      numbers: true,
-                                      uppercase: true,
+                                    TransactionService.add(
+                                      id: "WP$bookingId",
+                                      method: paymentMethod.Wallet,
+                                      mode: paymentMode.Card_Recharge,
+                                      amount: double.parse(controller.text.toString()).toString(),
+                                      status: paymentStatus.Debited,
+                                      time: tempTime,
+                                      date: tempDate,
                                     );
-                                    String bookingTime =
-                                        "${DateTime.now().hour}:${DateTime.now().minute}:${DateTime.now().second}";
-                                    String bookingDate =
-                                        "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}";
-                                    String bookingId =
-                                        "$randomId${auth.currentUser!.phoneNumber!.substring(3,7)}${DateTime.now().year}${DateTime.now().month}${DateTime.now().day}${auth.currentUser!.phoneNumber!.substring(8,12)}${DateTime.now().hour}${DateTime.now().minute}${DateTime.now().second}";
-                                    await fire
-                                        .collection("transactions")
-                                        .doc("WP$bookingId")
-                                        .set({
-                                      "Id": "WP$bookingId",
-                                      "Time": bookingTime,
-                                      "Date": bookingDate,
-                                      "Method": "Wallet",
-                                      "Mode": "Metro-Card-Recharge",
-                                      "Amount": controller.text.toString(),
-                                      "Phone No":auth.currentUser!.phoneNumber,
-                                      "Status":"Debited",
-                                      "TimeStamp":Timestamp.now()
-                                    });
-                                    await fire
-                                        .collection("transactions")
-                                        .doc("WCP$bookingId")
-                                        .set({
-                                      "Id": "WCP$bookingId",
-                                      "Time": bookingTime,
-                                      "Date": bookingDate,
-                                      "Method": "Wallet",
-                                      "Mode": "Metro-Card-Recharge",
-                                      "Amount": controller.text.toString(),
-                                      "Phone No":auth.currentUser!.phoneNumber,
-                                      "Status":"Credited",
-                                      "TimeStamp":Timestamp.now()
-                                    });
+                                    TransactionService.add(
+                                      id: "WCP$bookingId",
+                                      method: paymentMethod.Wallet,
+                                      mode: paymentMode.Card_Recharge,
+                                      amount: double.parse(controller.text.toString()).toString(),
+                                      status: paymentStatus.Credited,
+                                      time: tempTime,
+                                      date: tempDate,
+                                    );
                                     await fire.collection("cards").doc(tempCardNo.toString()).get().then((value) => currentBalance=double.parse(value["Balance"]));
                                     await fire
                                         .collection('cards')
@@ -400,23 +379,22 @@ class _RechargeMetroCardPageState extends State<RechargeMetroCardPage> {
                                     tempRazorpay=null;
                                     tempWallet=null;
                                     currentBalance=null;
-                                    Navigator.pop(context);
-                                    Navigator.pop(context);
+                                    pop(context);
+                                    pop(context);
                                     snackBar(
                                         context, Colors.green, "Amount Successfully added into your Metro Card");
                                   } else if(wallet && (currentWalletBalance!) > 0.0 ){
                                     tempWallet = currentWalletBalance!;
                                     tempRazorpay = (double.parse(controller.text) - currentWalletBalance!).toString();
                                     tempPaymentMode="Dual";
-                                    Navigator.pop(context);
-                                    print("VVVVVVVVVVVVVVVVVVVVVVVVV");
+                                    pop(context);
                                     print(double.parse(controller.text) - currentWalletBalance!);
                                     print((double.parse(controller.text) - currentWalletBalance!).runtimeType);
                                     await razorpayMethod((double.parse(controller.text) - currentWalletBalance!).toString());
                                   }else {
                                     tempPaymentMode="Razorpay";
                                     tempWallet=0.0;
-                                    tempRazorpay=(double.parse(controller.text) * 100).toString();
+                                    tempRazorpay=controller.text.toString();
                                     await razorpayMethod(tempRazorpay.toString());
                                   }
                                 }
@@ -476,7 +454,7 @@ class _RechargeMetroCardPageState extends State<RechargeMetroCardPage> {
       'key': 'rzp_test_864jf5OoKDSQuT',
       'amount': (double.parse(controller) * 100)
           .toString(), //in the smallest currency sub-unit.
-      'name': 'Metro Mate.',
+      'name': 'MetroX.',
       'currency': 'INR',
       'description': 'Add Money in Wallet',
       'timeout': 120, // in seconds

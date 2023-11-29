@@ -127,12 +127,18 @@ class YourSplashScreenContent extends StatelessWidget {
             ),
           ),
           Center(
-            child: SizedBox(
-                height: MediaQuery.of(context).size.height * 0.7,
-                width: MediaQuery.of(context).size.width * 0.7,
-                child: Image.asset('assets/Other/App-Icon-Name.png')),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    width: MediaQuery.of(context).size.width * 0.6,
+                    child: Image.asset('assets/Other/App-Icon-Name.png')),
+                const Text("Your Instant Pass to Smooth Metro Rides!",textAlign:TextAlign.center,style: TextStyle(color: Colors.grey,fontSize: 15),),
+              ],
+            ),
           ),
-          const SizedBox(height: 30,)
         ],
       ),
     );

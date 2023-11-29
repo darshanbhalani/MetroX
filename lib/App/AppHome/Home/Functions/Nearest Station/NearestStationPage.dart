@@ -162,7 +162,7 @@ class _NearestStationPageState extends State<NearestStationPage> {
       );
     }
 
-    Navigator.pop(context);
+    pop(context);
     setState(() {});
   }
 

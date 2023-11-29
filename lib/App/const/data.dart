@@ -1,3 +1,4 @@
+import 'package:MetroX/App/const/classes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_textfield/dropdown_textfield.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -66,10 +67,28 @@ List Cities = [
   "Pune"
 ];
 
+Map<paymentMethod,String> paymentMethodList={
+  paymentMethod.Wallet:"Wallet",
+  paymentMethod.Razorpay:"Razorpay",
+  paymentMethod.Dual:"Wallet & Razorpay"
+};
+
+Map<paymentMode,String> paymentModeList={
+  paymentMode.Ticket_Payment:"Ticket Payment",
+  paymentMode.Wallet_Recharge:"Wallet Recharge",
+  paymentMode.Card_Recharge:"Card Recharge"
+};
+
+Map<paymentStatus,String> paymentStatusList={
+  paymentStatus.Credited:"Credited",
+  paymentStatus.Debited:"Debited"
+};
+
+
 List FAQ = [
   [
     "I haven't received an OTP to log in/Sign up. What should I do ?",
-    "By default, the MetroX app will recognize the OTP once you receive it. In case this doesn’t happen, then you can check your SMS inbox. If you still haven’t received it, then write to us at support@metromate.in"
+    "By default, the MetroX app will recognize the OTP once you receive it. In case this doesn’t happen, then you can check your SMS inbox. If you still haven’t received it, then write to us at support@metrox.in"
   ],
   [
     "Why do I need to log in?",

@@ -75,8 +75,8 @@ class _OnBoardPageState extends State<OnBoardPage> {
     bannerScreen(2, "Easy to Use", "Effortless and intuitive, Our platform is designed with you in mind.", "assets/OnBoardScreens/s2.png"),
     bannerScreen(3, "Easy Payment", "Experience seamless transactions with our easy payment options.", "assets/OnBoardScreens/s3.png"),
     bannerScreen(4, "Data Security", "Your safety is our priority, We ensure a protected environment for your data and transactions, providing you with peace of mind.", "assets/OnBoardScreens/s4.png"),
-    bannerScreen(5, "Generate Ticket", "Effortlessly generate support tickets from anywhere in our app, ensuring a quick and convenient way to get assistance with just a few taps.", "assets/OnBoardScreens/s5.png"),
-    bannerScreen(6, "27x7 Support", "Need help? Our support is available around the clock, 24x7. Contact us anytime, and we'll be happy to assist you.", "assets/OnBoardScreens/s6.png"),
+    bannerScreen(5, "Generate Ticket", "Effortlessly generate Metro tickets from anywhere in our app, ensuring a quick and convenient way to book ticket with just a few taps.", "assets/OnBoardScreens/s5.png"),
+    bannerScreen(6, "27x7 Support", "Our support is available around the clock, 24x7. Contact us anytime, and we'll be happy to assist you.", "assets/OnBoardScreens/s6.png"),
   ];
 
   @override

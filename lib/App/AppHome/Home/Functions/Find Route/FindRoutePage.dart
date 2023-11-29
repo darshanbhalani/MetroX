@@ -78,7 +78,7 @@ class _FindRoutePageState extends State<FindRoutePage> {
             }
             Graph graph = Graph();
             List<String>? path = graph.bfs(_controller1.dropDownValue!.value.toString(), _controller2.dropDownValue!.value.toString());
-            Navigator.pop(context);
+            pop(context);
             if (path != null) {
               List route = path;
               Navigator.push(

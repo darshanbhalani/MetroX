@@ -22,6 +22,13 @@ class _LoginPageState extends State<LoginPage> {
   String varId = "";
 
   @override
+  void dispose() {
+    controller1.dispose();
+    controller2.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
@@ -69,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
                                 image: AssetImage("assets/Other/LogIn.png"))),
                       ),
                     ),
-                    Text("Phone Varification",
+                    Text("Phone Verification",
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: c1,
@@ -78,7 +85,7 @@ class _LoginPageState extends State<LoginPage> {
                       height: 5,
                     ),
                     const Text(
-                      "We need to varify your phone before getting started !",
+                      "We need to verify your phone before getting started !",
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(
@@ -143,7 +150,7 @@ class _LoginPageState extends State<LoginPage> {
                   await sendOTP(context, "+91${controller1.text}");
                 }
               } on FirebaseException catch (e){
-                Navigator.pop(context);
+                pop(context);
                 snackBar(context,  Colors.red,e.code);
               }
             }
@@ -171,7 +178,7 @@ class _LoginPageState extends State<LoginPage> {
             codeSent: (String verificationId, int? resendToken) async {
               varId = verificationId;
               flag = true;
-              Navigator.pop(context);
+              pop(context);
               snackBar(context,  Colors.green,"OTP sended");
               setState(() {});
             },
@@ -179,15 +186,13 @@ class _LoginPageState extends State<LoginPage> {
             timeout: const Duration(minutes: 1),
             codeAutoRetrievalTimeout: (String verificationId) {},
             verificationFailed: (FirebaseAuthException error) {
-              Navigator.pop(context);
+              pop(context);
               snackBar(context, Colors.red,error.message.toString());
             },
           );
     } on FirebaseException catch (e) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(e.message.toString()),
-      ));
+      pop(context);
+      snackBar(context, Colors.red, e.message.toString());
     }
   }
 
@@ -199,26 +204,18 @@ class _LoginPageState extends State<LoginPage> {
           await auth.signInWithCredential(credential);
       if (userCredential.user != null) {
         var snapShot = await fire.collection("users").doc(phone).get();
-        Navigator.pop(context);
+        pop(context);
         if (snapShot.exists) {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ChangeCityPage(flag: false),
-              ));
+          push(context, ChangeCityPage(flag: false));
         } else {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const SignupPage(),
-              ));
+          push(context, SignupPage());
         }
       } else {
-        Navigator.pop(context);
+        pop(context);
         snackBar(context,  Colors.red,"Oops! Somthing went wrong please try again later");
       }
     } on FirebaseException catch (e) {
-      Navigator.pop(context);
+      pop(context);
       if (e.code == "invalid-verification-code") {
         snackBar(context,  Colors.red,"Oops! Wrong OTP");
       } else if (e.code == "session-expired") {

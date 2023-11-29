@@ -1,10 +1,10 @@
 import 'package:MetroX/App/AppHome/Home/Functions/Ticket%20Booking/TicketViewPage.dart';
+import 'package:MetroX/App/const/classes.dart';
 import 'package:MetroX/App/const/color.dart';
 import 'package:MetroX/App/const/data.dart';
 import 'package:MetroX/App/const/wigets.dart';
 import 'package:dropdown_textfield/dropdown_textfield.dart';
 import 'package:flutter/material.dart';
-import 'package:random_password_generator/random_password_generator.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 class TicketBookingPage extends StatefulWidget {
@@ -39,7 +39,6 @@ class _TicketBookingPageState extends State<TicketBookingPage> {
     _razorpay = Razorpay();
     _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
     _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
-    // _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
     super.initState();
   }
 
@@ -70,12 +69,49 @@ class _TicketBookingPageState extends State<TicketBookingPage> {
   }
 
   Future<void> _handlePaymentSuccess(PaymentSuccessResponse response) async {
+    String tempTime=time();
+    String tempDate=date();
     if (wallet) {
       await fire
           .collection('users')
           .doc(auth.currentUser!.phoneNumber)
           .update({'Balance': (0.0).toString()});
     }
+    if (tempPaymentMode.toString() == "Dual") {
+      TransactionService.add(
+        id: "WP$bookingId",
+        method: paymentMethod.Wallet,
+        mode: paymentMode.Ticket_Payment,
+        amount: double.parse(tempWallet.toString()).toString(),
+        status: paymentStatus.Debited,
+        time: tempTime,
+        date: tempDate,
+      );
+      TransactionService.add(
+        id: response.paymentId.toString(),
+        method: paymentMethod.Razorpay,
+        mode: paymentMode.Ticket_Payment,
+        amount: double.parse(tempRazorpay.toString()).toString(),
+        status: paymentStatus.Debited,
+        time: tempTime,
+        date: tempDate,
+      );
+    } else {
+      TransactionService.add(
+        id: tempPaymentMode.toString() == "Wallet"
+            ? "WP$bookingId"
+            : response.paymentId.toString(),
+        method: tempPaymentMode.toString() == "Wallet"
+            ? paymentMethod.Wallet
+            : paymentMethod.Razorpay,
+        mode: paymentMode.Ticket_Payment,
+        amount: double.parse(totalFare.toString()).toString(),
+        status: paymentStatus.Debited,
+        time: tempTime,
+        date: tempDate,
+      );
+    }
+    pop(context);
     Navigator.push(
         context,
         MaterialPageRoute(
@@ -87,8 +123,7 @@ class _TicketBookingPageState extends State<TicketBookingPage> {
             destination: _controller3.dropDownValue!.value,
             bookingTime: bookingTime,
             bookingDate: bookingDate,
-            numberOfTickets:
-            _controller1.dropDownValue!.value.toString(),
+            numberOfTickets: _controller1.dropDownValue!.value.toString(),
             totalFare: totalFare.toString(),
             bookingId: bookingId,
             paymentId: ["WP$bookingId",tempWallet.toString(),response.paymentId.toString(),tempRazorpay.toString()],
@@ -153,33 +188,30 @@ class _TicketBookingPageState extends State<TicketBookingPage> {
                 _controller3.dropDownValue!.value) {
               await calculateFare();
               loading(context);
-              final RandomPasswordGenerator random = RandomPasswordGenerator();
-              String randomId = random.randomPassword(
-                passwordLength: 20,
-                specialChar: false,
-                letters: true,
-                numbers: true,
-                uppercase: true,
-              );
+              String randomId= bookingIdGenerator();
 
-              bookingTime =
-                  "${DateTime.now().hour}:${DateTime.now().minute}:${DateTime.now().second}";
-              bookingDate =
-                  "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}";
-              bookingId =
-                  "$randomId${auth.currentUser!.phoneNumber!.substring(3,7)}${DateTime.now().year}${DateTime.now().month}${DateTime.now().day}${auth.currentUser!.phoneNumber!.substring(8,12)}${DateTime.now().hour}${DateTime.now().minute}${DateTime.now().second}";
-
+              bookingTime =time();
+              bookingDate =date();
+              bookingId = "$randomId${auth.currentUser!.phoneNumber!.substring(3,7)}${DateTime.now().year}${DateTime.now().month}${DateTime.now().day}${auth.currentUser!.phoneNumber!.substring(8,12)}${DateTime.now().hour}${DateTime.now().minute}${DateTime.now().second}";
               qrData =
                   "$selectedCity-Metro::$bookingId::${_controller2.dropDownValue!.value}-${_controller3.dropDownValue!.value}::$bookingTime::$bookingDate::$fare";
               setState(() {});
-              Navigator.pop(context);
-
               if(wallet && (cureentBalance!) >= totalFare) {
                 await fire
                     .collection('users')
                     .doc(auth.currentUser!.phoneNumber)
                     .update(
                         {'Balance': (cureentBalance! - totalFare).toString()});
+                TransactionService.add(
+                  id: "WP$bookingId",
+                  method: paymentMethod.Wallet,
+                  mode: paymentMode.Ticket_Payment,
+                  amount: double.parse(totalFare.toString()).toString(),
+                  status: paymentStatus.Debited,
+                  time: bookingTime,
+                  date: bookingDate,
+                );
+                pop(context);
                 Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -207,10 +239,11 @@ class _TicketBookingPageState extends State<TicketBookingPage> {
               }else {
                 tempPaymentMode="Razorpay";
                 tempWallet=0.0;
-                tempRazorpay=(totalFare * 100).toString();
-                await razorpayMethod(tempRazorpay.toString());
+                tempRazorpay=totalFare.toString();
+                await razorpayMethod((totalFare * 100).toString());
               }
             } else {
+              pop(context);
               snackBar(context, Colors.red, "Source and Destination both are Same !");
             }
           }
@@ -220,9 +253,10 @@ class _TicketBookingPageState extends State<TicketBookingPage> {
           width: MediaQuery.of(context).size.width * 0.9,
           decoration:
               BoxDecoration(color: c1, borderRadius: BorderRadius.circular(20)),
-          child: const Center(
+          child:Center(
               child: Text(
-            "Next",
+                flag ?
+                "Pay ₹ ${double.parse(totalFare.toString()).toString()}":"Next",
             style: TextStyle(color: Colors.white, fontSize: 22),
           )),
         ),
@@ -240,7 +274,6 @@ class _TicketBookingPageState extends State<TicketBookingPage> {
           _controller3.dropDownValue!.value) {
         loading(context);
         fatchCurrntBalance();
-
         final snapshot1 =
             await ref.ref("Fare/$selectedCity/locations").orderByKey().get();
         List<dynamic> values1 = snapshot1.value as List<dynamic>;
@@ -260,7 +293,6 @@ class _TicketBookingPageState extends State<TicketBookingPage> {
             break;
           }
         }
-
         for (int i = 0; i < fareMatrix.length; i++) {
           if (fareMatrix[i][0] == _controller3.dropDownValue!.value) {
             y = i;
@@ -272,8 +304,7 @@ class _TicketBookingPageState extends State<TicketBookingPage> {
         setState(() {
           flag = true;
         });
-
-        Navigator.pop(context);
+        pop(context);
       } else {
         fare = 0;
         totalFare = 0;
@@ -343,7 +374,7 @@ class _TicketBookingPageState extends State<TicketBookingPage> {
     var options = {
       'key': 'rzp_test_864jf5OoKDSQuT',
       'amount': amount,
-      'name': 'Metro Mate.',
+      'name': 'MetroX.',
       'currency': 'INR',
       'description': '$selectedCity Metro Ticket',
       'timeout': 120,

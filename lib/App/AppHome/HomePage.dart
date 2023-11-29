@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:MetroX/App/AppHome/Bookings/BookingHistoryPage.dart';
 import 'package:MetroX/App/AppHome/Home/Drawer/ChangeCityPage.dart';
 import 'package:MetroX/App/AppHome/Home/Drawer/DrawerPage.dart';
@@ -37,15 +39,14 @@ class _HomePageState extends State<HomePage> {
           actions: [
             TextButton(
                 onPressed: (){
-                  Navigator.pop(context);
+                  pop(context);
                 },
                 child:Text("No",style:TextStyle(color: c1),)),
             TextButton(
                 onPressed: () async {
                   flag=true;
                   setState(() {});
-                  Navigator.pop(context);
-                  Navigator.pop(context);
+                  exit(0);
                 },
                 child:Text("Yes",style: TextStyle(color: c1),))
           ],
@@ -64,11 +65,7 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.only(right: 10.0),
               child: GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>const WalletPage(),
-                        ));
+                    push(context, WalletPage());
                   },
                   child: const Icon(Icons.account_balance_wallet_outlined)),
             )
@@ -141,11 +138,7 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: 25,),
                     GestureDetector(
                       onTap: (){
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ChangeCityPage(flag: true),
-                            ));
+                        push(context, ChangeCityPage(flag: true));
                       },
                       child: Container(
                         height:45,

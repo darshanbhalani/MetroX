@@ -18,7 +18,7 @@ class _ShowAllTransactionHistoryState extends State<ShowAllTransactionHistory> {
         title: const Text("Show All Transaction History"),
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10.0),
+        padding: const EdgeInsets.symmetric(vertical: 10.0,horizontal: 8),
         child: StreamBuilder(
           stream: FirebaseFirestore.instance
               .collection("transactions").orderBy("TimeStamp",descending: true)

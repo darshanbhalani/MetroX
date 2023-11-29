@@ -106,21 +106,23 @@ class _ChangeCityPageState extends State<ChangeCityPage> {
                 if(isSelected && (temp=="Ahmedabad" || temp=="Nagpur")){
                   loading(context);
                   await buildDataBase(temp);
-                  // Navigator.pop(context);
+                  // pop(context);
                   Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
                         builder: (context) => const HomePage(),
                       ),(route)=>false);
-                }else{
+                }else  if(isSelected){
                   snackBar(context, Colors.red, "MetroX is not available in selected city.");
+                }else{
+                  snackBar(context, Colors.red, "Please select city.");
                 }
               } else {
                 if(!isSelected){
                   snackBar(context, Colors.red, "Please select city.");
                 }
                 if (widget.flag) {
-                  Navigator.pop(context);
+                  pop(context);
                 }
               }
             },
