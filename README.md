@@ -1,6 +1,8 @@
-# metrox
+# MetroX - Metro ticket booking system
+# Front-End : Flutter
+# Back-End : Firebase (Authentication,Firestore-Database,Realtime-Database,Cloud-Storege)
+# Payment-Getway : Razorpay
 
-Metro ticket booking system
 
 ![Desktop - 0](https://github.com/darshanbhalani/MetroX/assets/108427824/5e9dcc2f-1a64-4649-971f-5a887af7dcdf)
 
