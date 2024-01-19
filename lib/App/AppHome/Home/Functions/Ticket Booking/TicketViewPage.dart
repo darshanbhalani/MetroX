@@ -226,6 +226,16 @@ class _TicketViewPageState extends State<TicketViewPage> {
           }
         }
       });
+    }).whenComplete(() {
+      fire.collection("qr-ticket-data").doc(widget.bookingId).set({
+        "Booking Id": widget.bookingId,
+        "TimeStamp": DateTime.now(),
+        "Tickets":widget.numberOfTickets,
+        "Total Fare": widget.totalFare,
+        "Metro": widget.city,
+        "Source": widget.source,
+        "Destination": widget.destination,
+      });
     });
     pop(context);
   }
