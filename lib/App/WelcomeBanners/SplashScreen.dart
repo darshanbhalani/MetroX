@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:MetroX/App/AppHome/Home/Drawer/ChangeCityPage.dart';
 import 'package:MetroX/App/AppHome/HomePage.dart';
@@ -23,9 +25,11 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 1),
     );
     _animationController!.forward();
+    Timer(const Duration(seconds: 3), () {
+    });
     _animationController!.addStatusListener((status) async {
       if (status == AnimationStatus.completed) {
         if(auth.currentUser == null){
@@ -68,13 +72,9 @@ class _SplashScreenState extends State<SplashScreen>
     return AnimatedBuilder(
       animation: _animationController!,
       builder: (BuildContext context, Widget? child) {
-        return Scaffold(
-          body: Center(
-            child: FadeTransition(
-              opacity: _animationController!,
-              child: child,
-            ),
-          ),
+        return  FadeTransition(
+          opacity: _animationController!,
+          child: child,
         );
       },
       child: const YourSplashScreenContent(), // Replace with your own splash screen content
@@ -87,60 +87,27 @@ class YourSplashScreenContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Stack(
+    return Scaffold(
+      backgroundColor: c1,
+      body: Padding(
+        padding: const EdgeInsets.only(top: 50),
+        child: Center(
+          child: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.6,
+              width: MediaQuery.of(context).size.width * 0.6,
+              child: Image.asset('assets/Other/A3.png')),
+        ),
+      ),
+      bottomNavigationBar: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Positioned(
-            top: 200,
-            right: 200,
-            child: Container(
-              height: 600,
-              width: 600,
-              decoration: BoxDecoration(
-                  color: c2,
-                  shape: BoxShape.circle
-              ),
-            ),
-          ),
-          Positioned(
-            top: -200,
-            right: -200,
-            child: Container(
-              height: 400,
-              width: 400,
-              decoration: BoxDecoration(
-                  color: c2,
-                  shape: BoxShape.circle
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -250,
-            right: -250,
-            child: Container(
-              height: 400,
-              width: 400,
-              decoration: BoxDecoration(
-                  color: c2,
-                  shape: BoxShape.circle
-              ),
-            ),
-          ),
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.6,
-                    width: MediaQuery.of(context).size.width * 0.6,
-                    child: Image.asset('assets/Other/App-Icon-Name.png')),
-                const Text("Your Instant Pass to Smooth Metro Rides!",textAlign:TextAlign.center,style: TextStyle(color: Colors.grey,fontSize: 15),),
-              ],
-            ),
-          ),
+          SizedBox(
+              height: MediaQuery.of(context).size.height * 0.3,
+              width: MediaQuery.of(context).size.width * 0.3,
+              child: Image.asset('assets/Other/A4.png')),
         ],
       ),
+
     );
   }
 }
